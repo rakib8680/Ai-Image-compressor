@@ -10,22 +10,24 @@ export const compressImage = async (
   compressionLevel: CompressionLevel
 ): Promise<string> => {
   
-  const qualityPrompts = {
-    low: "Apply light lossy compression. Prioritize high visual quality over file size reduction. For JPEG, aim for a quality setting around 85-95.",
-    medium: "Apply a balanced, medium level of lossy compression. Aim for a significant file size reduction with minimal perceivable loss in quality. For JPEG, aim for a quality setting around 60-75.",
-    high: "Apply aggressive, high lossy compression. Prioritize maximum file size reduction, even if it results in some noticeable quality loss. For JPEG, aim for a quality setting around 40-55."
+  const qualityDescription = {
+    low: "Apply light lossy compression. Prioritize high visual quality over file size reduction. (e.g., for JPEG, aim for a quality setting around 85-95).",
+    medium: "Apply a balanced, medium level of lossy compression. Aim for a significant file size reduction with minimal perceivable loss in quality. (e.g., for JPEG, aim for a quality setting around 70-85).",
+    high: "Apply aggressive, high lossy compression. Prioritize maximum file size reduction, even if it results in some noticeable quality loss. (e.g., for JPEG, aim for a quality setting around 50-70)."
   };
-  
-  const prompt = `CRITICAL TASK: You are an expert image compression engine. Your ONLY goal is to reduce the file size of the provided image.
-  
-Instructions:
-1.  Compression Level: ${compressionLevel.toUpperCase()}. ${qualityPrompts[compressionLevel]}
-2.  Output Format: You MUST output the image in image/${outputFormat} format.
-3.  File Size: The output file size MUST be smaller than the original. This is a strict requirement.
-4.  Content Integrity: Maintain the original image's content and aspect ratio. Do not crop or alter the image content.
-5.  No Extra Output: Do not add any text, commentary, or watermarks. The output should be only the compressed image data.
-  
-Compress the image now.`;
+
+  const prompt = `
+You are an expert image compression utility. Your primary goal is to reduce the file size of the provided image.
+
+**Task:** Compress the image according to these settings.
+
+**Settings:**
+1.  **Compression Level:** ${compressionLevel.toUpperCase()}. ${qualityDescription[compressionLevel]}
+2.  **Output Format:** Your output MUST be in \`image/${outputFormat}\` format.
+3.  **File Size:** The output image should be smaller than the original.
+4.  **Integrity:** Do NOT alter the image's dimensions, aspect ratio, or content.
+5.  **Output:** Provide ONLY the raw compressed image data. No text, commentary, or watermarks.
+`;
 
   try {
     const response = await ai.models.generateContent({
@@ -47,18 +49,31 @@ Compress the image now.`;
         responseModalities: [Modality.IMAGE, Modality.TEXT],
       },
     });
+    
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find(part => part.inlineData);
 
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-            return part.inlineData.data;
-        }
+    if (imagePart && imagePart.inlineData) {
+      return imagePart.inlineData.data;
     }
-
+    
+    const textPart = parts.find(part => part.text);
+    if (textPart && textPart.text) {
+      console.error("Gemini API returned a text response instead of an image:", textPart.text);
+      throw new Error("The AI model was unable to process this image. It might be an unsupported format or a content policy issue.");
+    }
+    
     throw new Error("No image data found in the API response. The model may have failed to generate a compressed image.");
+
   } catch (error) {
     console.error("Error compressing image with Gemini API:", error);
-    if (error instanceof Error && (error.message.includes("400") || error.message.includes("request failed"))) {
-        throw new Error("The image format may not be supported or the file is corrupted. Please try a different image.");
+    if (error instanceof Error) {
+        if (error.message.startsWith("The AI model was unable to process this image")) {
+            throw error;
+        }
+        if (error.message.includes("400") || error.message.includes("request failed")) {
+            throw new Error("The image format may not be supported or the file is corrupted. Please try a different image.");
+        }
     }
     throw new Error("Failed to process image with the AI service. Please try again later.");
   }
