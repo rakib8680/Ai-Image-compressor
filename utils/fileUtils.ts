@@ -1,4 +1,3 @@
-
 export const formatBytes = (bytes: number, decimals = 2): string => {
     if (bytes === 0) return '0 Bytes';
   
@@ -10,3 +9,9 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
   
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
+
+export const calculateRatio = (originalSize: number, compressedSize: number): string | null => {
+    if (compressedSize <= 0) return null;
+    const ratio = originalSize / compressedSize;
+    return ratio.toFixed(1);
+}

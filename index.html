@@ -31,12 +31,17 @@
                 '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
                 '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
               },
+              'subtle-pulse': {
+                '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(139, 92, 246, 0.4)' },
+                '50%': { transform: 'scale(1.02)', boxShadow: '0 0 0 10px rgba(139, 92, 246, 0)' },
+              }
             },
             animation: {
                 'spinner-ease-spin': 'spin 1.2s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite',
                 'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
                 'background-pan': 'background-pan 15s ease infinite',
                 'shake': 'shake 0.5s ease-in-out',
+                'subtle-pulse': 'subtle-pulse 2s infinite',
             },
           },
         },

@@ -6,6 +6,7 @@ import { compressImage } from './services/geminiService';
 import { OutputFormat, CompressionLevel } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { ImageDetailModal } from './components/ImageDetailModal';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
@@ -19,6 +20,7 @@ export default function App() {
   const [compressionLevel, setCompressionLevel] = useState<CompressionLevel>('medium');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const handleFileSelect = (file: File) => {
     if (file.size > MAX_FILE_SIZE) {
@@ -63,16 +65,11 @@ export default function App() {
 
   return (
     <div className={`min-h-screen w-full flex flex-col font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300 relative isolate overflow-hidden`}>
-      {/* Blurry Background */}
-      <div className="absolute inset-x-0 top-[-10rem] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[-20rem]" aria-hidden="true">
-        <div 
-          className="relative left-1/2 -z-10 aspect-[1155/678] w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] via-[#9089fc] to-[#3b82f6] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem] animate-background-pan" 
-          style={{ 
-            backgroundSize: '200% 200%',
-            clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)' 
-          }}
-        ></div>
+       {/* Professional Background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-gray-900 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:6rem_4rem]">
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_500px_at_50%_200px,#c9b2f566,transparent)] dark:bg-[radial-gradient(circle_500px_at_50%_200px,#3b276b88,transparent)]"></div>
       </div>
+
 
       <Navbar theme={theme} toggleTheme={toggleTheme} />
 
@@ -93,10 +90,20 @@ export default function App() {
               setCompressionLevel={setCompressionLevel}
               onStartOver={handleStartOver}
               error={error}
+              openModal={() => setIsModalOpen(true)}
             />
           )}
         </div>
       </main>
+      
+      {isModalOpen && compressedImage && originalImagePreview && (
+        <ImageDetailModal
+          originalImage={originalImagePreview}
+          compressedImage={compressedImage}
+          onClose={() => setIsModalOpen(false)}
+          outputFormat={outputFormat}
+        />
+      )}
       
       <Footer />
     </div>

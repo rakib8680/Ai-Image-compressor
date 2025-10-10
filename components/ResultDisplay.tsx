@@ -1,8 +1,9 @@
 import React from 'react';
 import { OutputFormat, CompressionLevel } from '../types';
-import { formatBytes } from '../utils/fileUtils';
+import { formatBytes, calculateRatio } from '../utils/fileUtils';
 import { Spinner } from './Spinner';
 import { Icon } from './Icon';
+import { Tooltip } from './Tooltip';
 
 interface ResultDisplayProps {
   originalImagePreview: string;
@@ -16,19 +17,43 @@ interface ResultDisplayProps {
   setCompressionLevel: (level: CompressionLevel) => void;
   onStartOver: () => void;
   error: string | null;
+  openModal: () => void;
 }
 
-const ImageCard: React.FC<{ title: string; imageSrc: string | null; size: number | null; dimensions: { w: number, h: number } | null; children?: React.ReactNode }> = ({ title, imageSrc, size, dimensions, children }) => (
+const ImageCard: React.FC<{ title: string; imageSrc: string | null; file: File | null; size: number | null; dimensions: { w: number, h: number } | null; children?: React.ReactNode; isCompressed?: boolean; onClick?: () => void; savings?: number; }> = ({ title, imageSrc, file, size, dimensions, children, isCompressed = false, onClick, savings }) => (
   <div className="flex-1 flex flex-col bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-        {size !== null && <p className="text-sm text-gray-500 dark:text-gray-400">{formatBytes(size)}</p>}
+        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1">
+            {size !== null && <span>{formatBytes(size)}</span>}
+            {file && <span className="font-mono bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded text-xs">{file.type}</span>}
+        </div>
       </div>
-      {dimensions && <p className="text-sm font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-md">{`${dimensions.w} x ${dimensions.h}`}</p>}
+      {savings && savings > 0 ? (
+        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-3 py-1.5 rounded-full">
+            <Icon name="savings" className="w-5 h-5"/>
+            <span className="font-bold text-sm">{savings.toFixed(1)}%</span>
+        </div>
+      ) : (
+        dimensions && <p className="text-sm font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-md">{`${dimensions.w} x ${dimensions.h}`}</p>
+      )}
     </div>
-    <div className="flex-grow flex items-center justify-center p-4 min-h-[300px]">
-      {imageSrc ? <img src={imageSrc} alt={title} className="max-w-full max-h-[40vh] object-contain rounded-lg" /> : children}
+    <div className="flex-grow flex items-center justify-center p-4 min-h-[300px] relative group">
+      {imageSrc ? (
+        <>
+            <img src={imageSrc} alt={title} className="max-w-full max-h-[40vh] object-contain rounded-lg" />
+            {isCompressed && onClick && (
+                 <div onClick={onClick} className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer rounded-lg">
+                    <div className="flex items-center gap-2 text-white font-bold text-lg p-3 bg-black/60 rounded-lg">
+                        <Icon name="compare" className="w-6 h-6" />
+                        <span>Click to Compare</span>
+                    </div>
+                </div>
+            )}
+        </>
+      )
+       : children}
     </div>
   </div>
 );
@@ -45,10 +70,12 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   compressionLevel,
   setCompressionLevel,
   onStartOver,
-  error
+  error,
+  openModal
 }) => {
   const [originalDims, setOriginalDims] = React.useState<{w: number, h: number} | null>(null);
   const [compressedDims, setCompressedDims] = React.useState<{w: number, h: number} | null>(null);
+  const [compressedFile, setCompressedFile] = React.useState<File | null>(null);
 
   React.useEffect(() => {
     if (originalImagePreview) {
@@ -63,21 +90,20 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         const img = new Image();
         img.onload = () => setCompressedDims({ w: img.width, h: img.height });
         img.src = compressedImage;
+        fetch(compressedImage).then(res => res.blob()).then(blob => {
+            setCompressedFile(new File([blob], `compressed.${outputFormat}`, { type: blob.type }));
+        })
     } else {
         setCompressedDims(null);
+        setCompressedFile(null);
     }
-  }, [compressedImage]);
+  }, [compressedImage, outputFormat]);
   
   const originalSize = originalFile?.size ?? null;
+  const compressedSize = compressedFile?.size ?? null;
   
-  const getCompressedSize = () => {
-    if (!compressedImage) return null;
-    const base64Data = compressedImage.split(',')[1];
-    return (base64Data.length * 3) / 4 - (base64Data.endsWith('==') ? 2 : (base64Data.endsWith('=') ? 1 : 0));
-  };
-
-  const compressedSize = getCompressedSize();
   const sizeReduction = originalSize && compressedSize ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
+  const compressionRatio = originalSize && compressedSize ? calculateRatio(originalSize, compressedSize) : null;
   
   const loadingMessages = React.useMemo(() => [
     "Analyzing pixels...",
@@ -104,8 +130,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   return (
     <div className="w-full flex flex-col items-center gap-8 animate-fade-in-up">
       <div className="w-full flex flex-col lg:flex-row gap-8">
-        <ImageCard title="Original" imageSrc={originalImagePreview} size={originalSize} dimensions={originalDims} />
-        <ImageCard title="Compressed" imageSrc={compressedImage} size={compressedSize} dimensions={compressedDims}>
+        <ImageCard title="Original" imageSrc={originalImagePreview} file={originalFile} size={originalSize} dimensions={originalDims} />
+        <ImageCard title="Compressed" imageSrc={compressedImage} file={compressedFile} size={compressedSize} dimensions={compressedDims} isCompressed={!!compressedImage} onClick={openModal} savings={sizeReduction}>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
               <Spinner />
@@ -114,7 +140,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
           ) : !compressedImage && (
             <div className="text-center text-gray-500 dark:text-gray-400 px-4">
               <Icon name="logo" className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" />
-              <p className="mt-4">Your compressed image will appear here once you click the "Compress" button below.</p>
+              <p className="mt-4">Your compressed image will appear here. Click the "Compress" button to start.</p>
             </div>
           )}
         </ImageCard>
@@ -127,21 +153,23 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Format:</span>
                 <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
-                <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
-                    JPG
-                </button>
-                <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
-                    PNG
-                </button>
+                  <Tooltip text="Best for photos, smaller file size.">
+                    <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>JPG</button>
+                  </Tooltip>
+                  <Tooltip text="Best for graphics with transparency.">
+                    <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>PNG</button>
+                  </Tooltip>
                 </div>
             </div>
             <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Quality:</span>
                 <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
                 {(['low', 'medium', 'high'] as CompressionLevel[]).map(level => (
-                    <button key={level} onClick={() => setCompressionLevel(level)} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors capitalize ${compressionLevel === level ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
-                        {level}
-                    </button>
+                    <Tooltip key={level} text={`${level === 'low' ? 'Highest quality' : level === 'medium' ? 'Balanced' : 'Smallest size'}`}>
+                      <button onClick={() => setCompressionLevel(level)} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors capitalize ${compressionLevel === level ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
+                          {level}
+                      </button>
+                    </Tooltip>
                 ))}
                 </div>
             </div>
@@ -151,9 +179,9 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <button
                 onClick={onCompress}
                 disabled={isLoading}
-                className="w-48 h-16 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 flex items-center justify-center text-lg"
+                className="w-48 h-16 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 flex items-center justify-center text-lg gap-2"
             >
-                {isLoading ? 'Working...' : (compressedImage ? 'Re-Compress' : 'Compress')}
+                {isLoading ? <><Spinner /> Working...</> : (compressedImage ? <><Icon name="refresh" className="w-6 h-6"/> Re-Compress</> : 'Compress')}
             </button>
           </div>
           {/* Column 3: Download Button */}
@@ -180,7 +208,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
           )}
           {!error && compressedSize && sizeReduction > 0 && (
             <div className="p-3 text-center w-full rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
-              <p className="font-semibold">Success! File size reduced by {sizeReduction.toFixed(1)}%.</p>
+              <p className="font-semibold">Success! Reduced size by {sizeReduction.toFixed(1)}% ({compressionRatio}:1 ratio).</p>
             </div>
           )}
           {!error && compressedSize && sizeReduction <= 0 && (
