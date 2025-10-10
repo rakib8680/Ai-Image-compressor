@@ -1,0 +1,5 @@
+{
+  "name": "AI Image Compressor",
+  "description": "An intelligent image compression and resizing tool powered by Gemini. Upload an image up to 20MB and receive a high-quality, size-optimized version in JPG or PNG format, complete with a beautiful UI and dark/light modes.",
+  "requestFramePermissions": []
+}
