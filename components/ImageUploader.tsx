@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { Icon } from './Icon';
 
@@ -45,7 +44,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, erro
 
 
   return (
-    <div className="w-full max-w-2xl mx-auto text-center">
+    <div className="w-full max-w-2xl mx-auto text-center animate-fade-in-up">
       <div className="mb-4">
         <h2 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           High-Quality Image Compression

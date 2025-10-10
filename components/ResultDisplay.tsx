@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { OutputFormat } from '../types';
 import { formatBytes } from '../utils/fileUtils';
@@ -52,7 +51,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   const sizeReduction = originalSize && compressedSize ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
 
   return (
-    <div className="w-full flex flex-col items-center gap-8">
+    <div className="w-full flex flex-col items-center gap-8 animate-fade-in-up">
       <div className="w-full flex flex-col lg:flex-row gap-8">
         <ImageCard title="Original" imageSrc={originalImagePreview} size={originalSize} />
         <ImageCard title="Compressed" imageSrc={compressedImage} size={compressedSize}>
@@ -69,49 +68,51 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         </ImageCard>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-2xl">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Output Format:</span>
-            <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
-              <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
-                JPG
-              </button>
-              <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
-                PNG
-              </button>
+      <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-3xl">
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+                <span className="font-medium">Output Format:</span>
+                <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
+                <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
+                    JPG
+                </button>
+                <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
+                    PNG
+                </button>
+                </div>
             </div>
-          </div>
-          
-          <button
-            onClick={onCompress}
-            disabled={isLoading}
-            className="flex-shrink-0 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900"
-          >
-            {isLoading ? 'Compressing...' : 'Compress Image'}
-          </button>
-          
-          {compressedImage && (
-            <a
-              href={compressedImage}
-              download={`compressed_image.${outputFormat}`}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
+            
+            <button
+                onClick={onCompress}
+                disabled={isLoading}
+                className="w-full sm:w-auto flex-shrink-0 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900"
             >
-              <Icon name="download" className="w-5 h-5" />
-              Download
-            </a>
-          )}
-      </div>
-
-       {compressedSize && sizeReduction > 0 && (
-        <div className="text-center p-3 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
-          <p className="font-semibold">Success! File size reduced by {sizeReduction.toFixed(1)}%.</p>
+                {isLoading ? 'Compressing...' : 'Re-Compress'}
+            </button>
+            
+            {compressedImage && (
+                <a
+                href={compressedImage}
+                download={`compressed_image.${outputFormat}`}
+                className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                >
+                <Icon name="download" className="w-5 h-5" />
+                Download
+                </a>
+            )}
         </div>
-      )}
+        {compressedSize && sizeReduction > 0 && (
+          <div className="mt-4 text-center p-3 w-full rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
+            <p className="font-semibold">Success! File size reduced by {sizeReduction.toFixed(1)}%.</p>
+          </div>
+        )}
+      </div>
 
       <button
         onClick={onStartOver}
-        className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-purple dark:hover:text-brand-purple underline"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-200/50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-300/70 dark:hover:bg-gray-600/70 transition-colors"
       >
+        <Icon name="start-over" className="w-5 h-5" />
         Compress another image
       </button>
     </div>

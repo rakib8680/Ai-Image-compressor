@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { OutputFormat } from '../types';
 
@@ -10,7 +9,7 @@ export const compressImage = async (
   outputFormat: OutputFormat
 ): Promise<string> => {
   
-  const prompt = `You are an expert image compression engine. Your task is to re-render the following image, significantly reducing its file size while preserving as much visual quality as possible. The final output format must be image/${outputFormat}. Do not add any extra elements, text, or modifications. The goal is high-quality compression.`;
+  const prompt = `You are a powerful image compression utility. Your task is to apply aggressive lossy compression to the provided image to drastically reduce its file size. It is crucial that the file size is smaller than the original. Maintain the original image's content and aspect ratio, but prioritize file size reduction above perfect visual fidelity. The output format MUST be image/${outputFormat}. Re-encode the image with a lower quality setting.`;
 
   try {
     const response = await ai.models.generateContent({

@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { useTheme } from './hooks/useTheme';
-import { ThemeToggle } from './components/ThemeToggle';
 import { ImageUploader } from './components/ImageUploader';
 import { ResultDisplay } from './components/ResultDisplay';
 import { compressImage } from './services/geminiService';
 import { OutputFormat } from './types';
-import { Icon } from './components/Icon';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
@@ -62,21 +61,15 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen w-full font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300 relative isolate overflow-hidden`}>
+    <div className={`min-h-screen w-full flex flex-col font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300 relative isolate overflow-hidden`}>
       {/* Blurry Background */}
       <div className="absolute inset-x-0 top-[-10rem] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[-20rem]" aria-hidden="true">
         <div className="relative left-1/2 -z-10 aspect-[1155/678] w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem]" style={{ clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)' }}></div>
       </div>
 
-      <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center">
-         <div className="flex items-center gap-2">
-            <Icon name="logo" className="w-8 h-8 text-brand-purple" />
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">AI Image Compressor</h1>
-        </div>
-        <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-      </header>
+      <Navbar theme={theme} toggleTheme={toggleTheme} />
 
-      <main className="min-h-screen flex items-center justify-center p-4 pt-20">
+      <main className="flex-grow flex items-center justify-center p-4 pt-24 pb-12">
         <div className="w-full max-w-5xl mx-auto">
           {!originalImagePreview ? (
             <ImageUploader onFileSelect={handleFileSelect} error={error} clearError={() => setError(null)} />
@@ -94,6 +87,8 @@ export default function App() {
           )}
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }
