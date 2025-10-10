@@ -64,10 +64,10 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen w-full flex flex-col font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300 relative isolate overflow-hidden`}>
+    <div className={`min-h-screen w-full flex flex-col font-sans text-gray-800 dark:text-slate-200 transition-colors duration-300 relative isolate overflow-hidden`}>
        {/* Professional Background */}
-      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-gray-900 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:6rem_4rem]">
-        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_500px_at_50%_200px,#c9b2f566,transparent)] dark:bg-[radial-gradient(circle_500px_at_50%_200px,#3b276b88,transparent)]"></div>
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-slate-950 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,theme(colors.slate.900)_1px,transparent_1px),linear-gradient(to_bottom,theme(colors.slate.900)_1px,transparent_1px)] bg-[size:6rem_4rem]">
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_500px_at_50%_200px,#c9b2f566,transparent)] dark:bg-[radial-gradient(circle_800px_at_50%_200px,theme(colors.purple.950/50),transparent)]"></div>
       </div>
 
 

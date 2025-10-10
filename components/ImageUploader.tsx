@@ -49,7 +49,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, erro
         <h2 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           High-Quality Image Compression
         </h2>
-        <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+        <p className="mt-4 text-lg text-gray-600 dark:text-slate-400">
           Reduce image file sizes with minimal quality loss. Powered by Gemini.
         </p>
       </div>
@@ -60,10 +60,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, erro
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         className={`mt-8 group relative flex flex-col items-center justify-center w-full h-80 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300
-        ${isDragging ? 'border-brand-purple bg-purple-50 dark:bg-gray-800' : 'border-gray-300 dark:border-gray-600 hover:border-brand-purple/70 dark:hover:border-brand-purple/70 bg-gray-50/50 dark:bg-gray-800/20'}`}
+        ${isDragging ? 'border-brand-purple bg-purple-50 dark:bg-slate-800' : 'border-gray-300 dark:border-slate-700 hover:border-brand-purple/70 dark:hover:border-brand-purple/70 bg-gray-50/50 dark:bg-slate-900/30'}`}
       >
-        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-gray-400">
-          <Icon name="upload" className={`w-12 h-12 mb-4 text-gray-400 group-hover:text-brand-purple transition-colors ${isDragging ? 'text-brand-purple' : ''}`} />
+        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-slate-400">
+          <Icon name="upload" className={`w-12 h-12 mb-4 text-gray-400 dark:text-slate-500 group-hover:text-brand-purple transition-colors ${isDragging ? 'text-brand-purple' : ''}`} />
           <p className="mb-2 text-lg"><span className="font-semibold text-brand-purple">Click to upload</span> or drag and drop</p>
           <p className="text-sm">PNG, JPG, HEIC, etc. (max 20MB)</p>
         </div>
@@ -71,7 +71,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, erro
       </label>
       
       {error && (
-        <div className="mt-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 animate-shake" role="alert">
+        <div className="mt-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-950/50 dark:text-red-400 animate-shake" role="alert">
           <span className="font-medium">Error:</span> {error}
           <button onClick={clearError} className="ml-4 font-bold">X</button>
         </div>

@@ -21,22 +21,22 @@ interface ResultDisplayProps {
 }
 
 const ImageCard: React.FC<{ title: string; imageSrc: string | null; file: File | null; size: number | null; dimensions: { w: number, h: number } | null; children?: React.ReactNode; isCompressed?: boolean; onClick?: () => void; savings?: number; }> = ({ title, imageSrc, file, size, dimensions, children, isCompressed = false, onClick, savings }) => (
-  <div className="flex-1 flex flex-col bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+  <div className="flex-1 flex flex-col bg-white/50 dark:bg-slate-900/60 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800">
+    <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1">
+        <div className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2 mt-1">
             {size !== null && <span>{formatBytes(size)}</span>}
-            {file && <span className="font-mono bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded text-xs">{file.type}</span>}
+            {file && <span className="font-mono bg-gray-100 dark:bg-slate-800/50 px-2 py-0.5 rounded text-xs">{file.type}</span>}
         </div>
       </div>
       {savings && savings > 0 ? (
-        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/10 px-3 py-1.5 rounded-full">
             <Icon name="savings" className="w-5 h-5"/>
             <span className="font-bold text-sm">{savings.toFixed(1)}%</span>
         </div>
       ) : (
-        dimensions && <p className="text-sm font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-md">{`${dimensions.w} x ${dimensions.h}`}</p>
+        dimensions && <p className="text-sm font-mono text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800/50 px-2 py-1 rounded-md">{`${dimensions.w} x ${dimensions.h}`}</p>
       )}
     </div>
     <div className="flex-grow flex items-center justify-center p-4 min-h-[300px] relative group">
@@ -133,40 +133,40 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         <ImageCard title="Original" imageSrc={originalImagePreview} file={originalFile} size={originalSize} dimensions={originalDims} />
         <ImageCard title="Compressed" imageSrc={compressedImage} file={compressedFile} size={compressedSize} dimensions={compressedDims} isCompressed={!!compressedImage} onClick={openModal} savings={sizeReduction}>
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center text-gray-500 dark:text-slate-400">
               <Spinner />
               <p className="mt-4 text-sm font-medium">{loadingMessage}</p>
             </div>
           ) : !compressedImage && (
-            <div className="text-center text-gray-500 dark:text-gray-400 px-4">
-              <Icon name="logo" className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" />
+            <div className="text-center text-gray-500 dark:text-slate-400 px-4">
+              <Icon name="logo" className="w-16 h-16 mx-auto text-gray-300 dark:text-slate-700" />
               <p className="mt-4">Your compressed image will appear here. Click the "Compress" button to start.</p>
             </div>
           )}
         </ImageCard>
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-4xl">
+      <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white/60 dark:bg-slate-900/70 backdrop-blur-lg shadow-xl border border-gray-200 dark:border-slate-800 w-full max-w-4xl">
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           {/* Column 1: Format & Quality */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Format:</span>
-                <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
+                <div className="flex rounded-lg bg-gray-200 dark:bg-slate-800 p-1">
                   <Tooltip text="Best for photos, smaller file size.">
-                    <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>JPG</button>
+                    <button onClick={() => setOutputFormat('jpeg')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'jpeg' ? 'bg-white dark:bg-slate-600 text-brand-purple shadow' : 'text-gray-600 dark:text-slate-300'}`}>JPG</button>
                   </Tooltip>
                   <Tooltip text="Best for graphics with transparency.">
-                    <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>PNG</button>
+                    <button onClick={() => setOutputFormat('png')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${outputFormat === 'png' ? 'bg-white dark:bg-slate-600 text-brand-purple shadow' : 'text-gray-600 dark:text-slate-300'}`}>PNG</button>
                   </Tooltip>
                 </div>
             </div>
             <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Quality:</span>
-                <div className="flex rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
+                <div className="flex rounded-lg bg-gray-200 dark:bg-slate-800 p-1">
                 {(['low', 'medium', 'high'] as CompressionLevel[]).map(level => (
                     <Tooltip key={level} text={`${level === 'low' ? 'Highest quality' : level === 'medium' ? 'Balanced' : 'Smallest size'}`}>
-                      <button onClick={() => setCompressionLevel(level)} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors capitalize ${compressionLevel === level ? 'bg-white dark:bg-gray-900 text-brand-purple shadow' : 'text-gray-600 dark:text-gray-300'}`}>
+                      <button onClick={() => setCompressionLevel(level)} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors capitalize ${compressionLevel === level ? 'bg-white dark:bg-slate-600 text-brand-purple shadow' : 'text-gray-600 dark:text-slate-300'}`}>
                           {level}
                       </button>
                     </Tooltip>
@@ -179,7 +179,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <button
                 onClick={onCompress}
                 disabled={isLoading}
-                className="w-48 h-16 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 flex items-center justify-center text-lg gap-2"
+                className="w-48 h-16 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-slate-950 flex items-center justify-center text-lg gap-2"
             >
                 {isLoading ? <><Spinner /> Working...</> : (compressedImage ? <><Icon name="refresh" className="w-6 h-6"/> Re-Compress</> : 'Compress')}
             </button>
@@ -202,17 +202,17 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         {/* Status Message Area */}
         <div className="mt-4 w-full min-h-[44px]">
           {error && (
-            <div className="p-3 text-sm text-center text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 animate-shake" role="alert">
+            <div className="p-3 text-sm text-center text-red-800 rounded-lg bg-red-50 dark:bg-red-500/10 dark:text-red-400 animate-shake" role="alert">
               <span className="font-medium">Error:</span> {error}
             </div>
           )}
           {!error && compressedSize && sizeReduction > 0 && (
-            <div className="p-3 text-center w-full rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
+            <div className="p-3 text-center w-full rounded-lg bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-400">
               <p className="font-semibold">Success! Reduced size by {sizeReduction.toFixed(1)}% ({compressionRatio}:1 ratio).</p>
             </div>
           )}
           {!error && compressedSize && sizeReduction <= 0 && (
-            <div className="p-3 text-center w-full rounded-lg bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300">
+            <div className="p-3 text-center w-full rounded-lg bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-400">
               <p className="font-semibold">Compression did not reduce file size. Try a higher compression level.</p>
             </div>
           )}
@@ -221,7 +221,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
 
       <button
         onClick={onStartOver}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-200/50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-300/70 dark:hover:bg-gray-600/70 transition-colors"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-200/50 dark:bg-slate-800 rounded-lg hover:bg-gray-300/70 dark:hover:bg-slate-700 transition-colors"
       >
         <Icon name="start-over" className="w-5 h-5" />
         Compress another image
