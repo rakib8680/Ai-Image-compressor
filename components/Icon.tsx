@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
-  name: 'sun' | 'moon' | 'upload' | 'download' | 'logo' | 'github' | 'start-over' | 'refresh' | 'close' | 'zoom-in' | 'zoom-out' | 'reset' | 'compare' | 'savings';
+  name: 'sun' | 'moon' | 'upload' | 'download' | 'logo' | 'github' | 'start-over' | 'refresh' | 'close' | 'zoom-in' | 'zoom-out' | 'reset' | 'compare' | 'savings' | 'side-by-side' | 'crop';
 }
 
 const ICONS: Record<IconProps['name'], React.ReactNode> = {
@@ -19,6 +19,8 @@ const ICONS: Record<IconProps['name'], React.ReactNode> = {
   'reset': <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
   'compare': <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m-4-8h8M4 4h2v16H4zm12 0h2v16h-2z" />,
   'savings': <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 21.75c-2.43 0-4.68-.616-6.62-1.74C3.38 18.995 2.25 17.14 2.25 15c0-2.31.86-4.43 2.25-5.918M12 21.75c2.43 0 4.68-.616 6.62-1.74 2.05-1.18 3.13-3.03 3.13-5.01 0-2.31-.86-4.43-2.25-5.918" />,
+  'side-by-side': <path strokeLinecap="round" strokeLinejoin="round" d="M6 2H4v20h2V2zm7 0h-2v20h2V2zm7 0h-2v20h2V2z" />,
+  'crop': <path strokeLinecap="round" strokeLinejoin="round" d="M8 3v4a1 1 0 001 1h4m4 8v4a1 1 0 01-1 1h-4m-8-8H3a1 1 0 00-1 1v4m16-8h4a1 1 0 011 1v4" />,
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className, ...props }) => {

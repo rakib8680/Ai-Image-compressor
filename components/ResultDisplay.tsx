@@ -47,7 +47,7 @@ const ImageCard: React.FC<{ title: string; imageSrc: string | null; file: File |
                  <div onClick={onClick} className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer rounded-lg">
                     <div className="flex items-center gap-2 text-white font-bold text-lg p-3 bg-black/60 rounded-lg">
                         <Icon name="compare" className="w-6 h-6" />
-                        <span>Click to Compare</span>
+                        <span>Click to Compare & Edit</span>
                     </div>
                 </div>
             )}
@@ -103,7 +103,6 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   const compressedSize = compressedFile?.size ?? null;
   
   const sizeReduction = originalSize && compressedSize ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
-  const compressionRatio = originalSize && compressedSize ? calculateRatio(originalSize, compressedSize) : null;
   
   const loadingMessages = React.useMemo(() => [
     "Analyzing pixels...",
@@ -206,9 +205,16 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
               <span className="font-medium">Error:</span> {error}
             </div>
           )}
-          {!error && compressedSize && sizeReduction > 0 && (
-            <div className="p-3 text-center w-full rounded-lg bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-400">
-              <p className="font-semibold">Success! Reduced size by {sizeReduction.toFixed(1)}% ({compressionRatio}:1 ratio).</p>
+          {!error && compressedSize !== null && originalSize !== null && sizeReduction > 0 && (
+            <div className="p-4 text-center w-full rounded-lg bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-400 space-y-2">
+              <p className="font-semibold text-lg">Success! Reduced size by {sizeReduction.toFixed(1)}%</p>
+              <div className="text-sm font-mono text-green-700 dark:text-green-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                  <p>Original: {originalDims?.w}x{originalDims?.h} &middot; {originalSize.toLocaleString()} bytes</p>
+                  <p>Compressed: {compressedDims?.w}x{compressedDims?.h} &middot; {compressedSize.toLocaleString()} bytes</p>
+              </div>
+              <div title={`Compressed size is ${((compressedSize/originalSize) * 100).toFixed(1)}% of original`} className="w-full bg-green-200 dark:bg-green-900 rounded-full h-2.5 mt-2">
+                  <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${(compressedSize/originalSize) * 100}%` }}></div>
+              </div>
             </div>
           )}
           {!error && compressedSize && sizeReduction <= 0 && (

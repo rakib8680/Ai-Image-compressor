@@ -7,6 +7,7 @@ import { OutputFormat, CompressionLevel } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ImageDetailModal } from './components/ImageDetailModal';
+import { dataURLtoFile } from './utils/fileUtils';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
@@ -63,6 +64,16 @@ export default function App() {
     setError(null);
   };
 
+  const handleCrop = (croppedOriginalB64: string, croppedCompressedB64: string) => {
+    setOriginalImagePreview(croppedOriginalB64);
+    setCompressedImage(croppedCompressedB64);
+
+    const newOriginalFile = dataURLtoFile(croppedOriginalB64, originalImage?.name ?? `cropped-original.${outputFormat}`);
+    setOriginalImage(newOriginalFile);
+    
+    setIsModalOpen(false);
+  };
+
   return (
     <div className={`min-h-screen w-full flex flex-col font-sans text-gray-800 dark:text-slate-200 transition-colors duration-300 relative isolate overflow-hidden`}>
        {/* Professional Background */}
@@ -102,6 +113,7 @@ export default function App() {
           compressedImage={compressedImage}
           onClose={() => setIsModalOpen(false)}
           outputFormat={outputFormat}
+          onCrop={handleCrop}
         />
       )}
       
