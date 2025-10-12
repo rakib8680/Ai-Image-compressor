@@ -1,6 +1,6 @@
 import React from 'react';
 import { OutputFormat, CompressionLevel } from '../types';
-import { formatBytes, calculateRatio } from '../utils/fileUtils';
+import { formatBytes } from '../utils/fileUtils';
 import { Spinner } from './Spinner';
 import { Icon } from './Icon';
 import { Tooltip } from './Tooltip';
@@ -39,7 +39,7 @@ const ImageCard: React.FC<{ title: string; imageSrc: string | null; file: File |
         dimensions && <p className="text-sm font-mono text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800/50 px-2 py-1 rounded-md">{`${dimensions.w} x ${dimensions.h}`}</p>
       )}
     </div>
-    <div className="flex-grow flex items-center justify-center p-4 min-h-[300px] relative group">
+    <div className="flex-grow flex items-center justify-center p-4 min-h-[300px] relative group bg-slate-50 dark:bg-slate-800/20 rounded-b-2xl">
       {imageSrc ? (
         <>
             <img src={imageSrc} alt={title} className="max-w-full max-h-[40vh] object-contain rounded-lg" />
@@ -53,7 +53,7 @@ const ImageCard: React.FC<{ title: string; imageSrc: string | null; file: File |
             )}
         </>
       )
-       : children}
+       : <div className="absolute inset-0 flex items-center justify-center bg-slate-100/50 dark:bg-slate-900/20">{children}</div>}
     </div>
   </div>
 );
@@ -125,6 +125,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
     }
     return () => clearInterval(interval);
   }, [isLoading, loadingMessages]);
+  
+  const hasResult = compressedSize !== null && originalSize !== null;
 
   return (
     <div className="w-full flex flex-col items-center gap-8 animate-fade-in-up">
@@ -178,7 +180,13 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <button
                 onClick={onCompress}
                 disabled={isLoading}
-                className="w-48 h-16 bg-brand-purple hover:bg-brand-purple/90 disabled:bg-brand-purple/50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple/50 focus:ring-offset-gray-100 dark:focus:ring-offset-slate-950 flex items-center justify-center text-lg gap-2"
+                className={`w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none flex items-center justify-center text-lg gap-2
+                           bg-gradient-to-br from-brand-purple to-brand-pink
+                           hover:from-brand-purple/90 hover:to-brand-pink/90
+                           shadow-lg hover:shadow-xl
+                           focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800
+                           disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md
+                           ${!compressedImage && !isLoading ? 'animate-subtle-pulse' : ''}`}
             >
                 {isLoading ? <><Spinner /> Working...</> : (compressedImage ? <><Icon name="refresh" className="w-6 h-6"/> Re-Compress</> : 'Compress')}
             </button>
@@ -189,7 +197,11 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                 <a
                   href={compressedImage}
                   download={`compressed_image.${outputFormat}`}
-                  className="w-48 h-16 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-lg"
+                  className="w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none flex items-center justify-center gap-2 text-lg
+                            bg-gradient-to-br from-green-500 to-teal-500
+                            hover:from-green-500/90 hover:to-teal-500/90
+                            shadow-lg hover:shadow-xl
+                            focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
                 >
                   <Icon name="download" className="w-6 h-6" />
                   Download
@@ -199,30 +211,32 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         </div>
         
         {/* Status Message Area */}
-        <div className="mt-4 w-full min-h-[44px]">
-          {error && (
-            <div className="p-3 text-sm text-center text-red-800 rounded-lg bg-red-50 dark:bg-red-500/10 dark:text-red-400 animate-shake" role="alert">
-              <span className="font-medium">Error:</span> {error}
+        {(error || hasResult) && (
+            <div className="mt-4 w-full">
+            {error && (
+                <div className="p-3 text-sm text-center text-red-800 rounded-lg bg-red-50 dark:bg-red-500/10 dark:text-red-400 animate-shake" role="alert">
+                <span className="font-medium">Error:</span> {error}
+                </div>
+            )}
+            {!error && hasResult && sizeReduction > 0 && (
+                <div className="p-4 text-center w-full rounded-lg bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-400 space-y-2">
+                <p className="font-semibold text-lg">Success! Reduced size by {sizeReduction.toFixed(1)}%</p>
+                <div className="text-sm font-mono text-green-700 dark:text-green-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                    <p>Original: {originalDims?.w}x{originalDims?.h} &middot; {originalSize.toLocaleString()} bytes</p>
+                    <p>Compressed: {compressedDims?.w}x{compressedDims?.h} &middot; {compressedSize.toLocaleString()} bytes</p>
+                </div>
+                <div title={`Compressed size is ${((compressedSize/originalSize) * 100).toFixed(1)}% of original`} className="w-full bg-green-200 dark:bg-green-900 rounded-full h-2.5 mt-2">
+                    <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${(compressedSize/originalSize) * 100}%` }}></div>
+                </div>
+                </div>
+            )}
+            {!error && hasResult && sizeReduction <= 0 && (
+                <div className="p-3 text-center w-full rounded-lg bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-400">
+                <p className="font-semibold">Compression did not reduce file size. Try a higher compression level.</p>
+                </div>
+            )}
             </div>
-          )}
-          {!error && compressedSize !== null && originalSize !== null && sizeReduction > 0 && (
-            <div className="p-4 text-center w-full rounded-lg bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-400 space-y-2">
-              <p className="font-semibold text-lg">Success! Reduced size by {sizeReduction.toFixed(1)}%</p>
-              <div className="text-sm font-mono text-green-700 dark:text-green-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-                  <p>Original: {originalDims?.w}x{originalDims?.h} &middot; {originalSize.toLocaleString()} bytes</p>
-                  <p>Compressed: {compressedDims?.w}x{compressedDims?.h} &middot; {compressedSize.toLocaleString()} bytes</p>
-              </div>
-              <div title={`Compressed size is ${((compressedSize/originalSize) * 100).toFixed(1)}% of original`} className="w-full bg-green-200 dark:bg-green-900 rounded-full h-2.5 mt-2">
-                  <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${(compressedSize/originalSize) * 100}%` }}></div>
-              </div>
-            </div>
-          )}
-          {!error && compressedSize && sizeReduction <= 0 && (
-            <div className="p-3 text-center w-full rounded-lg bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-400">
-              <p className="font-semibold">Compression did not reduce file size. Try a higher compression level.</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       <button

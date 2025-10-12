@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Icon } from './Icon';
 import { OutputFormat } from '../types';
+import { Tooltip } from './Tooltip';
 
 interface ImageDetailModalProps {
   originalImage: string;
@@ -10,7 +11,6 @@ interface ImageDetailModalProps {
   onCrop: (originalCropped: string, compressedCropped: string) => void;
 }
 
-type ViewMode = 'split' | 'side-by-side';
 type CropRect = { x: number, y: number, width: number, height: number };
 
 const ToolbarButton: React.FC<{ onClick: () => void, children: React.ReactNode, active?: boolean }> = ({ onClick, children, active = false }) => (
@@ -29,14 +29,15 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [sliderPos, setSliderPos] = useState(50);
     const [naturalDims, setNaturalDims] = useState({ w: 0, h: 0 });
+    const [isSpacebarDown, setIsSpacebarDown] = useState(false);
     
-    const [viewMode, setViewMode] = useState<ViewMode>('split');
+    const [isComparing, setIsComparing] = useState(true);
     const [isCropping, setIsCropping] = useState(false);
     const [cropRect, setCropRect] = useState<CropRect | null>(null);
     const [cropStartPoint, setCropStartPoint] = useState<{ x: number, y: number } | null>(null);
 
     const imageContainerRef = useRef<HTMLDivElement>(null);
-    const originalImgRef = useRef<HTMLImageElement>(null);
+    const imageRef = useRef<HTMLImageElement>(null);
 
     const isInteractive = !isCropping && !cropStartPoint;
 
@@ -70,7 +71,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        if (!isInteractive || scale <= 1 || viewMode !== 'split') return;
+        if (!isInteractive || (scale <= 1 && !isSpacebarDown)) return;
         e.preventDefault();
         setIsDragging(true);
         setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
@@ -91,27 +92,21 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     };
 
     const getPointOnNaturalImage = useCallback((e: React.MouseEvent): { x: number, y: number } | null => {
-        if (!imageContainerRef.current || !originalImgRef.current || !naturalDims.w) return null;
+        if (!imageRef.current || !naturalDims.w) return null;
         
-        const containerRect = imageContainerRef.current.getBoundingClientRect();
+        const imgRect = imageRef.current.getBoundingClientRect();
         
-        const scaledW = naturalDims.w * scale;
-        const scaledH = naturalDims.h * scale;
-
-        const imageRenderX = (containerRect.width - scaledW) / 2 + offset.x;
-        const imageRenderY = (containerRect.height - scaledH) / 2 + offset.y;
+        const clickX = e.clientX - imgRect.left;
+        const clickY = e.clientY - imgRect.top;
         
-        const clickInContainerX = e.clientX - containerRect.left;
-        const clickInContainerY = e.clientY - containerRect.top;
-        
-        const naturalX = (clickInContainerX - imageRenderX) / scale;
-        const naturalY = (clickInContainerY - imageRenderY) / scale;
+        const naturalX = (clickX / imgRect.width) * naturalDims.w;
+        const naturalY = (clickY / imgRect.height) * naturalDims.h;
     
         return {
             x: Math.max(0, Math.min(naturalDims.w, naturalX)),
             y: Math.max(0, Math.min(naturalDims.h, naturalY)),
         };
-    }, [naturalDims, scale, offset]);
+    }, [naturalDims]);
 
     const handleCropMouseDown = (e: React.MouseEvent) => {
         if (!isCropping) return;
@@ -147,7 +142,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
         if (!cropRect || cropRect.width < 1 || cropRect.height < 1) return;
 
         const cropImage = (base64: string): Promise<string> => {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
@@ -157,26 +152,45 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
                     if(ctx) {
                         ctx.drawImage(img, cropRect.x, cropRect.y, cropRect.width, cropRect.height, 0, 0, cropRect.width, cropRect.height);
                         resolve(canvas.toDataURL(outputFormat === 'jpeg' ? 'image/jpeg' : 'image/png'));
+                    } else {
+                        reject(new Error('Could not get canvas context'));
                     }
                 };
+                img.onerror = () => reject(new Error('Image failed to load for cropping'));
                 img.src = base64;
             });
         };
 
-        const [croppedOriginal, croppedCompressed] = await Promise.all([
-            cropImage(originalImage),
-            cropImage(compressedImage)
-        ]);
-
-        onCrop(croppedOriginal, croppedCompressed);
+        try {
+            const [croppedOriginal, croppedCompressed] = await Promise.all([
+                cropImage(originalImage),
+                cropImage(compressedImage)
+            ]);
+            onCrop(croppedOriginal, croppedCompressed);
+        } catch (error) {
+            console.error("Cropping failed:", error);
+        }
     };
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
+            if (e.key === ' ') {
+                e.preventDefault();
+                setIsSpacebarDown(true);
+            }
+        };
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === ' ') {
+                setIsSpacebarDown(false);
+            }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        }
     }, [onClose]);
     
     useEffect(() => {
@@ -186,13 +200,17 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     }, [isCropping, resetView]);
 
     const handleSliderMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.buttons !== 1 || viewMode !== 'split') return;
+        if (e.buttons !== 1 || !isComparing || isCropping) return;
         const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
         setSliderPos((x / rect.width) * 100);
     };
 
-    const cursor = isCropping ? 'crosshair' : isDragging ? 'grabbing' : (scale > 1 && viewMode === 'split' && isInteractive) ? 'grab' : 'default';
+    let cursor = 'default';
+    if (isCropping) cursor = 'crosshair';
+    else if (isDragging) cursor = 'grabbing';
+    else if (isSpacebarDown) cursor = 'grab';
+    else if (scale > 1 && isInteractive) cursor = 'grab';
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center animate-fade-in-up" onMouseUp={isCropping ? handleCropMouseUp : handleMouseUp} onMouseLeave={isCropping ? handleCropMouseUp : handleMouseUp}>
@@ -202,31 +220,37 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
                 onWheel={handleWheel}
                 onMouseDown={isCropping ? handleCropMouseDown : handleMouseDown}
                 onMouseMove={isCropping ? handleCropMouseMove : handleMouseMove}
-                style={{ cursor: cursor }}
+                style={{ cursor }}
             >
                 <div 
-                    className="relative flex"
+                    className="relative"
                     style={{ 
                         transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
                         transition: isDragging || cropStartPoint ? 'none' : 'transform 0.1s ease-out',
+                        touchAction: 'none',
                     }}
                 >
-                   <img ref={originalImgRef} src={originalImage} alt="Original" className="max-w-[90vw] max-h-[90vh] object-contain select-none" draggable="false" onLoad={(e) => setNaturalDims({ w: (e.target as HTMLImageElement).naturalWidth, h: (e.target as HTMLImageElement).naturalHeight })} style={{ display: viewMode === 'side-by-side' ? 'block' : 'block' }} />
+                   <img 
+                     ref={imageRef}
+                     src={originalImage} 
+                     alt="Original" 
+                     className="max-w-[90vw] max-h-[90vh] object-contain select-none pointer-events-none" 
+                     draggable="false" 
+                     onLoad={(e) => setNaturalDims({ w: (e.target as HTMLImageElement).naturalWidth, h: (e.target as HTMLImageElement).naturalHeight })} 
+                   />
                    
-                   {viewMode === 'side-by-side' && (
-                       <img src={compressedImage} alt="Compressed" className="max-w-[90vw] max-h-[90vh] object-contain select-none ml-4" draggable="false" />
-                   )}
+                    <div className="absolute top-0 left-0 h-full w-full" style={{ clipPath: isComparing ? `inset(0 ${100 - sliderPos}% 0 0)` : 'none' }}>
+                        <img src={compressedImage} alt="Compressed" className="absolute top-0 left-0 w-full h-full object-contain select-none pointer-events-none" draggable="false" />
+                    </div>
                    
-                   {viewMode === 'split' && (
+                   {isComparing && (
                         <>
-                            <div className="absolute top-0 left-0 h-full w-full" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
-                                <img src={compressedImage} alt="Compressed" className="max-w-[90vw] max-h-[90vh] object-contain select-none" draggable="false" />
-                            </div>
-                            <div className="absolute top-0 bottom-0 bg-white w-1" style={{ left: `${sliderPos}%`, cursor: 'ew-resize' }} onMouseDown={(e) => e.stopPropagation()}>
+                            <div className="absolute top-0 bottom-0 bg-white w-1 z-10 pointer-events-none" style={{ left: `${sliderPos}%` }}>
                                 <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-white shadow-lg flex items-center justify-center">
                                     <Icon name="compare" className="w-5 h-5 text-brand-purple rotate-90" />
                                 </div>
                             </div>
+                            <div onMouseMove={handleSliderMove} className="absolute top-0 left-0 w-full h-full" style={{ cursor: 'ew-resize' }}></div>
                         </>
                     )}
 
@@ -239,37 +263,36 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
                         }} />
                     )}
                 </div>
-                { viewMode === 'split' && <div onMouseMove={handleSliderMove} onMouseDown={(e) => e.stopPropagation()} className="absolute top-0 left-0 w-full h-full" style={{ cursor: 'ew-resize' }}></div> }
             </div>
             
-            <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-brand-purple transition-colors">
+            <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-brand-purple transition-colors z-20">
+              <Tooltip text="Close (Esc)">
                 <Icon name="close" className="w-10 h-10" />
+              </Tooltip>
             </button>
 
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-700">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-700 z-20">
                 {!isCropping ? (
                     <>
-                        <ToolbarButton onClick={() => setScale(s => Math.min(s * 1.2, 8))}><Icon name="zoom-in" className="w-6 h-6" /></ToolbarButton>
-                        <ToolbarButton onClick={() => setScale(s => Math.max(s / 1.2, 0.5))}><Icon name="zoom-out" className="w-6 h-6" /></ToolbarButton>
-                        <ToolbarButton onClick={resetView}><Icon name="reset" className="w-6 h-6" /></ToolbarButton>
+                        <Tooltip text="Zoom In"><ToolbarButton onClick={() => setScale(s => Math.min(s * 1.2, 8))}><Icon name="zoom-in" className="w-6 h-6" /></ToolbarButton></Tooltip>
+                        <Tooltip text="Zoom Out"><ToolbarButton onClick={() => setScale(s => Math.max(s / 1.2, 0.5))}><Icon name="zoom-out" className="w-6 h-6" /></ToolbarButton></Tooltip>
+                        <Tooltip text="Reset View / Pan (Hold Space)"><ToolbarButton onClick={resetView}><Icon name="reset" className="w-6 h-6" /></ToolbarButton></Tooltip>
                         <div className="w-px h-6 bg-slate-600 mx-2"></div>
-                        <ToolbarButton onClick={() => setViewMode('split')} active={viewMode === 'split'}><Icon name="compare" className="w-6 h-6" /></ToolbarButton>
-                        <ToolbarButton onClick={() => setViewMode('side-by-side')} active={viewMode === 'side-by-side'}><Icon name="side-by-side" className="w-6 h-6" /></ToolbarButton>
-                        <ToolbarButton onClick={toggleCropMode} active={isCropping}><Icon name="crop" className="w-6 h-6" /></ToolbarButton>
-                        <div className="w-px h-6 bg-slate-600 mx-2"></div>
-                        <a href={compressedImage} download={`compressed_image.${outputFormat}`} className="p-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-500 flex items-center gap-2 px-4">
-                            <Icon name="download" className="w-6 h-6" />
-                            <span className="font-semibold">Download</span>
-                        </a>
+                        <Tooltip text="Toggle Comparison Slider"><ToolbarButton onClick={() => setIsComparing(!isComparing)} active={isComparing}><Icon name="compare" className="w-6 h-6" /></ToolbarButton></Tooltip>
+                        <Tooltip text="Crop Image"><ToolbarButton onClick={toggleCropMode} active={isCropping}><Icon name="crop" className="w-6 h-6" /></ToolbarButton></Tooltip>
                     </>
                 ) : (
                     <>
-                        <button onClick={toggleCropMode} className="p-2 rounded-lg transition-colors bg-slate-600 text-white hover:bg-slate-500 flex items-center gap-2 px-4">
-                            <span className="font-semibold">Cancel</span>
-                        </button>
-                        <button onClick={handleConfirmCrop} disabled={!cropRect || cropRect.width < 1} className="p-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-500 flex items-center gap-2 px-4 disabled:bg-green-800 disabled:cursor-not-allowed">
-                            <span className="font-semibold">Confirm Crop</span>
-                        </button>
+                       <Tooltip text="Cancel cropping and return">
+                          <button onClick={toggleCropMode} className="p-2 rounded-lg transition-colors bg-slate-600 text-white hover:bg-slate-500 flex items-center gap-2 px-4">
+                              <span className="font-semibold">Cancel</span>
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Apply the crop to both images">
+                          <button onClick={handleConfirmCrop} disabled={!cropRect || cropRect.width < 1} className="p-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-500 flex items-center gap-2 px-4 disabled:bg-green-800 disabled:cursor-not-allowed">
+                              <span className="font-semibold">Confirm Crop</span>
+                          </button>
+                        </Tooltip>
                     </>
                 )}
             </div>
