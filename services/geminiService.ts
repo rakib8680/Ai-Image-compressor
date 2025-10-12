@@ -10,24 +10,12 @@ export const compressImage = async (
   compressionLevel: CompressionLevel
 ): Promise<string> => {
   
-  const qualityDescription = {
-    low: "Apply light lossy compression. Prioritize high visual quality over file size reduction. (e.g., for JPEG, aim for a quality setting around 85-95).",
-    medium: "Apply a balanced, medium level of lossy compression. Aim for a significant file size reduction with minimal perceivable loss in quality. (e.g., for JPEG, aim for a quality setting around 70-85).",
-    high: "Apply aggressive, high lossy compression. Prioritize maximum file size reduction, even if it results in some noticeable quality loss. (e.g., for JPEG, aim for a quality setting around 50-70)."
-  };
-
-  const prompt = `
-You are an expert image compression utility. Your primary goal is to reduce the file size of the provided image.
-
-**Task:** Compress the image according to these settings.
-
-**Settings:**
-1.  **Compression Level:** ${compressionLevel.toUpperCase()}. ${qualityDescription[compressionLevel]}
-2.  **Output Format:** Your output MUST be in \`image/${outputFormat}\` format.
-3.  **File Size:** The output image should be smaller than the original.
-4.  **Integrity:** Do NOT alter the image's dimensions, aspect ratio, or content.
-5.  **Output:** Provide ONLY the raw compressed image data. No text, commentary, or watermarks.
-`;
+  // A direct, command-like prompt to guide the model effectively and prevent text responses.
+  const prompt = `Compress the image.
+Compression level: ${compressionLevel}.
+Output format: image/${outputFormat}.
+Maintain original dimensions.
+Return ONLY the image data.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -45,6 +33,8 @@ You are an expert image compression utility. Your primary goal is to reduce the 
           },
         ],
       },
+      // Per documentation, both modalities are required for this model.
+      // This allows the model to return a text error if it cannot process the image.
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
       },
@@ -53,28 +43,34 @@ You are an expert image compression utility. Your primary goal is to reduce the 
     const parts = response.candidates?.[0]?.content?.parts || [];
     const imagePart = parts.find(part => part.inlineData);
 
-    if (imagePart && imagePart.inlineData) {
+    if (imagePart?.inlineData) {
       return imagePart.inlineData.data;
     }
     
+    // If no image is returned, check for a text explanation from the model.
     const textPart = parts.find(part => part.text);
-    if (textPart && textPart.text) {
+    if (textPart?.text) {
       console.error("Gemini API returned a text response instead of an image:", textPart.text);
-      throw new Error("The AI model was unable to process this image. It might be an unsupported format or a content policy issue.");
+      if (textPart.text.toLowerCase().includes('policy')) {
+         throw new Error("The image could not be processed due to content policy reasons.");
+      }
+      throw new Error("The AI model was unable to process this image. It might be an unsupported format or a corrupt file.");
     }
     
+    // Fallback error if the response is empty or malformed.
     throw new Error("No image data found in the API response. The model may have failed to generate a compressed image.");
 
   } catch (error) {
     console.error("Error compressing image with Gemini API:", error);
-    if (error instanceof Error) {
-        if (error.message.startsWith("The AI model was unable to process this image")) {
-            throw error;
-        }
-        if (error.message.includes("400") || error.message.includes("request failed")) {
-            throw new Error("The image format may not be supported or the file is corrupted. Please try a different image.");
-        }
+    // Re-throw specific, user-friendly errors, otherwise provide a generic one.
+    if (error instanceof Error && (
+        error.message.includes("content policy") ||
+        error.message.includes("unsupported format") ||
+        error.message.includes("No image data found")
+    )) {
+        throw error;
     }
-    throw new Error("Failed to process image with the AI service. Please try again later.");
+    // This catches network errors or other unexpected API issues.
+    throw new Error("Failed to communicate with the AI service. Please check your connection and try again.");
   }
 };

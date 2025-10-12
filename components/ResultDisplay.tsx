@@ -180,12 +180,11 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <button
                 onClick={onCompress}
                 disabled={isLoading}
-                className={`w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none flex items-center justify-center text-lg gap-2
-                           bg-gradient-to-br from-brand-purple to-brand-pink
-                           hover:from-brand-purple/90 hover:to-brand-pink/90
-                           shadow-lg hover:shadow-xl
+                className={`w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none flex items-center justify-center text-lg gap-2
+                           bg-brand-purple hover:bg-purple-700
+                           shadow-lg shadow-brand-purple/30 hover:shadow-xl hover:shadow-brand-purple/40
                            focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800
-                           disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md
+                           disabled:bg-slate-400 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none
                            ${!compressedImage && !isLoading ? 'animate-subtle-pulse' : ''}`}
             >
                 {isLoading ? <><Spinner /> Working...</> : (compressedImage ? <><Icon name="refresh" className="w-6 h-6"/> Re-Compress</> : 'Compress')}
@@ -197,11 +196,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                 <a
                   href={compressedImage}
                   download={`compressed_image.${outputFormat}`}
-                  className="w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none flex items-center justify-center gap-2 text-lg
-                            bg-gradient-to-br from-green-500 to-teal-500
-                            hover:from-green-500/90 hover:to-teal-500/90
-                            shadow-lg hover:shadow-xl
-                            focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
+                  className="w-48 h-16 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none flex items-center justify-center gap-2 text-lg
+                            bg-brand-blue hover:bg-blue-700
+                            shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40
+                            focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
                 >
                   <Icon name="download" className="w-6 h-6" />
                   Download

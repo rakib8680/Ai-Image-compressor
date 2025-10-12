@@ -26,6 +26,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     const [scale, setScale] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
+    const [isDraggingSlider, setIsDraggingSlider] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [sliderPos, setSliderPos] = useState(50);
     const [naturalDims, setNaturalDims] = useState({ w: 0, h: 0 });
@@ -78,7 +79,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging || !isInteractive) return;
+        if (!isDragging || !isInteractive || isDraggingSlider) return;
         e.preventDefault();
         const newOffset = {
             x: e.clientX - dragStart.x,
@@ -89,6 +90,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
 
     const handleMouseUp = () => {
         setIsDragging(false);
+        setIsDraggingSlider(false);
     };
 
     const getPointOnNaturalImage = useCallback((e: React.MouseEvent): { x: number, y: number } | null => {
@@ -200,7 +202,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
     }, [isCropping, resetView]);
 
     const handleSliderMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.buttons !== 1 || !isComparing || isCropping) return;
+        if (!isDraggingSlider || !isComparing || isCropping) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
         setSliderPos((x / rect.width) * 100);
@@ -226,7 +228,7 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
                     className="relative"
                     style={{ 
                         transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
-                        transition: isDragging || cropStartPoint ? 'none' : 'transform 0.1s ease-out',
+                        transition: isDragging || cropStartPoint || isDraggingSlider ? 'none' : 'transform 0.1s ease-out',
                         touchAction: 'none',
                     }}
                 >
@@ -250,7 +252,12 @@ export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({ originalImag
                                     <Icon name="compare" className="w-5 h-5 text-brand-purple rotate-90" />
                                 </div>
                             </div>
-                            <div onMouseMove={handleSliderMove} className="absolute top-0 left-0 w-full h-full" style={{ cursor: 'ew-resize' }}></div>
+                            <div 
+                              onMouseDown={() => setIsDraggingSlider(true)}
+                              onMouseMove={handleSliderMove} 
+                              className="absolute top-0 left-0 w-full h-full" 
+                              style={{ cursor: 'ew-resize' }}>
+                            </div>
                         </>
                     )}
 
