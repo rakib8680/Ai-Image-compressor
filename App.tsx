@@ -59,8 +59,9 @@ const HomePageContent: React.FC<{onFileSelect: (file: File) => void; error: stri
       <ImageUploader onFileSelect={onFileSelect} error={error} clearError={clearError} />
       
       {/* How It Works Section */}
-      <section className="py-16 sm:py-24 animate-fade-in-up">
-        <div className="max-w-xl mx-auto text-center mb-12">
+      <section className="py-16 sm:py-24 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 h-64 bg-brand-purple/10 dark:bg-brand-purple/20 rounded-full blur-3xl -z-10"></div>
+        <div className="max-w-xl mx-auto text-center mb-12 animate-fade-in-up">
           <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Simple & Quick Process
           </h2>
@@ -70,8 +71,12 @@ const HomePageContent: React.FC<{onFileSelect: (file: File) => void; error: stri
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           {steps.map((step, index) => (
-            <div key={step.title} className="flex flex-col items-center p-6 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800">
-              <div className="flex items-center justify-center h-16 w-16 mb-4 rounded-full bg-brand-purple text-white shadow-lg">
+            <div 
+              key={step.title} 
+              className="flex flex-col items-center p-6 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800 group transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:border-brand-purple/50 animate-fade-in-up"
+              style={{ animationDelay: `${index * 150}ms` }}
+            >
+              <div className="flex items-center justify-center h-16 w-16 mb-4 rounded-full bg-brand-purple text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <Icon name={step.icon} className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
@@ -82,8 +87,9 @@ const HomePageContent: React.FC<{onFileSelect: (file: File) => void; error: stri
       </section>
       
       {/* Features Section */}
-      <section className="py-16 sm:py-24 animate-fade-in-up">
-        <div className="max-w-xl mx-auto text-center mb-12">
+      <section className="py-16 sm:py-24 relative">
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/2 h-96 bg-brand-blue/10 dark:bg-brand-blue/20 rounded-full blur-3xl -z-10"></div>
+        <div className="max-w-xl mx-auto text-center mb-12 animate-fade-in-up">
           <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Why Choose Our Compressor?
           </h2>
@@ -92,9 +98,13 @@ const HomePageContent: React.FC<{onFileSelect: (file: File) => void; error: stri
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {features.map(feature => (
-             <div key={feature.title} className="flex items-start p-6 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800">
-              <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-lg bg-brand-blue text-white mr-4">
+          {features.map((feature, index) => (
+             <div 
+               key={feature.title} 
+               className="flex items-start p-6 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800 group transition-all duration-300 hover:bg-white/60 dark:hover:bg-slate-900/70 hover:-translate-y-2 animate-fade-in-up"
+               style={{ animationDelay: `${100 + index * 150}ms` }}
+             >
+              <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-lg bg-brand-blue text-white mr-4 transition-all duration-300 group-hover:bg-brand-blue/90 group-hover:scale-110">
                 <Icon name={feature.icon} className="w-6 h-6" />
               </div>
               <div>
@@ -107,13 +117,16 @@ const HomePageContent: React.FC<{onFileSelect: (file: File) => void; error: stri
       </section>
 
       {/* Powered by Gemini Section */}
-      <section className="py-16 sm:py-24 text-center animate-fade-in-up">
-         <div className="p-8 bg-gradient-to-r from-brand-purple via-brand-pink to-brand-blue rounded-2xl shadow-2xl animate-background-pan">
-            <Icon name="logo" className="w-16 h-16 mx-auto text-white/80 mb-4" />
-            <h2 className="text-3xl font-extrabold text-white">Powered by Gemini</h2>
-            <p className="mt-2 text-lg text-white/90 max-w-2xl mx-auto">
-                We use Google's state-of-the-art Gemini model to perform intelligent, context-aware image compression that understands every pixel.
-            </p>
+      <section className="py-16 sm:py-24 text-center">
+         <div className="p-8 bg-gradient-to-r from-brand-purple via-brand-pink to-brand-blue rounded-2xl shadow-2xl animate-background-pan relative overflow-hidden animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,rgba(255,255,255,0)_70%)] animate-spin" style={{animationDuration: '20s'}}></div>
+            <div className="relative">
+              <Icon name="logo" className="w-16 h-16 mx-auto text-white/80 mb-4 animate-glow" />
+              <h2 className="text-3xl font-extrabold text-white">Powered by Gemini</h2>
+              <p className="mt-2 text-lg text-white/90 max-w-2xl mx-auto">
+                  We use Google's state-of-the-art Gemini model to perform intelligent, context-aware image compression that understands every pixel.
+              </p>
+            </div>
          </div>
       </section>
     </>

@@ -34,6 +34,10 @@
               'subtle-pulse': {
                 '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(139, 92, 246, 0.4)' },
                 '50%': { transform: 'scale(1.02)', boxShadow: '0 0 0 10px rgba(139, 92, 246, 0)' },
+              },
+              'glow': {
+                '0%, 100%': { filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))' },
+                '50%': { filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.8))' },
               }
             },
             animation: {
@@ -42,6 +46,7 @@
                 'background-pan': 'background-pan 15s ease infinite',
                 'shake': 'shake 0.5s ease-in-out',
                 'subtle-pulse': 'subtle-pulse 2s infinite',
+                'glow': 'glow 4s ease-in-out infinite',
             },
           },
         },
