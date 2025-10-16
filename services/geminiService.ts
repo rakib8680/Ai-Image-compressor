@@ -1,7 +1,7 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { OutputFormat, CompressionLevel } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+const ai = new GoogleGenAI({ apiKey: (window as any).GEMINI_API_KEY as string });
 
 export const compressImage = async (
   base64ImageData: string,
