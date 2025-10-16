@@ -190,9 +190,9 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                 {isLoading ? <><Spinner /> Working...</> : (compressedImage ? <><Icon name="refresh" className="w-6 h-6"/> Re-Compress</> : 'Compress')}
             </button>
           </div>
-          {/* Column 3: Download Button */}
-          <div className="flex md:justify-end justify-center">
-            {compressedImage && (
+          {/* Column 3: Download & Start Over Buttons */}
+          <div className="flex md:justify-end justify-center items-center gap-4">
+            {compressedImage && !isLoading && (
                 <a
                   href={compressedImage}
                   download={`compressed_image.${outputFormat}`}
@@ -205,6 +205,16 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                   Download
                 </a>
             )}
+             {!isLoading && <button
+                onClick={onStartOver}
+                className="w-48 h-16 font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none flex items-center justify-center gap-2 text-lg
+                            bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200
+                            shadow-md shadow-slate-500/10 hover:shadow-lg hover:shadow-slate-500/20
+                            focus:ring-4 focus:ring-slate-300 dark:focus:ring-slate-600"
+              >
+                <Icon name="start-over" className="w-6 h-6" />
+                Start Over
+              </button>}
           </div>
         </div>
         
@@ -236,14 +246,6 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
             </div>
         )}
       </div>
-
-      <button
-        onClick={onStartOver}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-200/50 dark:bg-slate-800 rounded-lg hover:bg-gray-300/70 dark:hover:bg-slate-700 transition-colors"
-      >
-        <Icon name="start-over" className="w-5 h-5" />
-        Compress another image
-      </button>
     </div>
   );
 };
